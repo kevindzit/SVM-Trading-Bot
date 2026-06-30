@@ -1,0 +1,20 @@
+# Raw market data (downloaded via Pull_Data/) — not committed
+DATA/
+*.csv
+
+# Trained models and scalers
+*.pkl
+*.joblib
+models/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+.env
+
+# OS / IDE
+.DS_Store
+.vscode/
+.idea/
