@@ -22,7 +22,7 @@ def load_joblibs(folder):
         scaler_file, model_file = sorted(files)
     return model_file, scaler_file
 
-MODEL_FILE, SCALER_FILE = load_joblibs(SVM_MODELS_FOLDER)
+MODEL_FILE = SCALER_FILE = None
 
 def model_tag(path):
     base = os.path.splitext(os.path.basename(path))[0]
@@ -47,7 +47,9 @@ def add_features(df):
     d['MACD_Hist']     = ta.trend.MACD(d['Close']).macd_diff()
     d['RSI_14']        = ta.momentum.RSIIndicator(d['Close'], 14).rsi()
     d['Stoch_K_14']    = ta.momentum.StochasticOscillator(d['High'], d['Low'], d['Close']).stoch()
-    d['BB_Width_20_2'] = ta.volatility.BollingerBands(d['Close']).bollinger_wband()
+    bb = ta.volatility.BollingerBands(d['Close'], window=20, window_dev=2, fillna=False)
+    # match the raw band width used during training
+    d['BB_Width_20_2'] = bb.bollinger_hband() - bb.bollinger_lband()
     d['ATR_14']        = ta.volatility.AverageTrueRange(d['High'], d['Low'], d['Close']).average_true_range()
     obv                = ta.volume.OnBalanceVolumeIndicator(d['Close'], d['Volume'])
     d['OBV_Change']    = obv.on_balance_volume().diff()
@@ -126,6 +128,8 @@ def print_summary(s):
     print('---------------')
 
 def main():
+    global MODEL_FILE, SCALER_FILE
+    MODEL_FILE, SCALER_FILE = load_joblibs(SVM_MODELS_FOLDER)
     raw   = load_csv(CSV_FILE)
     feat  = add_features(raw)
     trade = scale_prices(feat, BTC_PER_SHARE)
